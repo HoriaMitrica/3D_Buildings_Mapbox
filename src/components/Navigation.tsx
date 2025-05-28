@@ -60,6 +60,20 @@ const Navigation: React.FC = () => {
         🏗️ Mapbox Example (GLTF)
       </Link>
       
+      <Link 
+        to="/debug" 
+        style={location.pathname === '/debug' ? activeLinkStyle : linkStyle}
+      >
+        🔍 GLTF Debugger
+      </Link>
+      
+      <Link 
+        to="/obj" 
+        style={location.pathname === '/obj' ? activeLinkStyle : linkStyle}
+      >
+        📦 OBJ Loader
+      </Link>
+      
       <div style={{ 
         marginTop: '10px', 
         paddingTop: '10px', 
