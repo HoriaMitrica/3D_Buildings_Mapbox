@@ -13,6 +13,20 @@ declare global {
 const ThreeboxLocalGLB: React.FC = () => {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<mapboxgl.Map | null>(null);
+  const modelRef = useRef<any>(null);
+
+  // Static coordinates and rotation
+  const coordinates = {
+    lat: 44.462079,
+    lng: 26.120902,
+    alt: -0.9
+  };
+
+  const rotation = {
+    x: 0,
+    y: 0,
+    z: 206.6 * (Math.PI / 180) // Convert degrees to radians
+  };
 
   useEffect(() => {
     if (!mapContainerRef.current) return;
@@ -22,7 +36,7 @@ const ThreeboxLocalGLB: React.FC = () => {
     mapRef.current = new mapboxgl.Map({
       container: mapContainerRef.current,
       style: 'mapbox://styles/mapbox/streets-v12',
-      center: [26.1025, 44.4268],
+      center: [coordinates.lng, coordinates.lat],
       zoom: 18,
       pitch: 60,
       bearing: 0,
@@ -42,48 +56,30 @@ const ThreeboxLocalGLB: React.FC = () => {
             mapRef.current!.getCanvas().getContext('webgl')!,
             { defaultLights: true }
           );
-          
+
           const scale = 1;
           const options = {
-            obj: '/cantina.glb',
+            obj: '/cantina5.0.glb',
             type: 'glb',
             scale: scale,
-            units: 'meters'
+            units: 'meters',
+            billboard: false
           };
 
           window.tb.loadObj(options, (model: any) => {
-            console.log('Model loaded:', {
-              type: model.type,
-              children: model.children?.length,
-              scale: model.scale,
-              position: model.position,
-              boundingBox: model.boundingBox
-            });
-            
-            // Don't override model position - use its original metadata
+
+
+            modelRef.current = model;
+
+            model.setCoords([coordinates.lng, coordinates.lat, coordinates.alt]);
+            model.rotation.x = rotation.x;
+            model.rotation.y = rotation.y;
+            model.rotation.z = rotation.z;
+            model.updateMatrix();
+
             window.tb.add(model);
-            
-            console.log('Model at original position:', {
-              coordinates: model.coordinates,
-              position: model.position,
-              scale: model.scale
-            });
-            
-            // Focus camera on the model's actual location
-            if (mapRef.current && model.coordinates) {
-              const [lng, lat] = model.coordinates;
-              mapRef.current.flyTo({
-                center: [lng, lat],
-                zoom: 18,
-                pitch: 60,
-                bearing: 0
-              });
-              
-              // Add marker at model's actual location
-              new mapboxgl.Marker({ color: 'red' })
-                .setLngLat([lng, lat])
-                .addTo(mapRef.current);
-            }
+
+
           });
         },
 
@@ -103,18 +99,20 @@ const ThreeboxLocalGLB: React.FC = () => {
   }, []);
 
   return (
-    <div 
-      ref={mapContainerRef} 
-      style={{ 
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        width: '100%', 
-        height: '100%',
-        margin: 0,
-        padding: 0
-      }} 
-    />
+    <div style={{ position: 'relative', width: '100%', height: '100%' }}>
+      <div
+        ref={mapContainerRef}
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          margin: 0,
+          padding: 0
+        }}
+      />
+    </div>
   );
 };
 
